@@ -21,6 +21,7 @@ dev = [
 
 [project.scripts]
 alpaca-tick = "alpaca_trader.runner:main"
+alpaca-report = "alpaca_trader.runner:report_main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

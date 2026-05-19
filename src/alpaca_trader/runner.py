@@ -10,6 +10,7 @@ from .broker import AlpacaBroker
 from .config import Settings
 from .data import BarFetcher
 from .portfolio import TargetOrder, build_orders
+from .reporter import PortfolioReporter, format_report
 from .strategy import SmaCrossoverStrategy, StrategyDecision
 
 log = logging.getLogger("alpaca_trader")
@@ -71,6 +72,14 @@ def run_tick(settings: Settings, *, dry_run: bool = False) -> list[TargetOrder]:
     return orders
 
 
+def run_report(settings: Settings) -> None:
+    settings.require_credentials()
+    reporter = PortfolioReporter(settings.api_key, settings.api_secret, paper=settings.paper)
+    report = reporter.snapshot()
+    for line in format_report(report).splitlines():
+        log.info("%s", line)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     _configure_logging()
     args = list(sys.argv[1:] if argv is None else argv)
@@ -79,11 +88,26 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         settings = Settings.from_env()
         run_tick(settings, dry_run=dry_run)
+        run_report(settings)
     except RuntimeError as exc:
         log.error("%s", exc)
         return 1
     except Exception:
         log.exception("tick failed")
+        return 2
+    return 0
+
+
+def report_main(argv: Sequence[str] | None = None) -> int:
+    _configure_logging()
+    try:
+        settings = Settings.from_env()
+        run_report(settings)
+    except RuntimeError as exc:
+        log.error("%s", exc)
+        return 1
+    except Exception:
+        log.exception("report failed")
         return 2
     return 0
 
