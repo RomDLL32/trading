@@ -65,8 +65,17 @@ DO NOT call `alpaca buy / sell / close / cancel`. Read-only.
    - "Require 2+ outlets for sentiment-driven entries"
    - "Hold winners through 5% pullbacks unless invalidation is hit"
 
-8. Compute the week's PnL vs SPY buy-and-hold over the same window
-   (use `alpaca bars SPY --days 10` to get the bracketing closes).
+8. Compute the week's PnL vs three passive benchmarks over the same
+   window. Use the closing prices that bracket the review window:
+   - **SPY** — S&P 500 buy-and-hold
+   - **VT** — Vanguard Total World ETF (developed + emerging)
+   - **SSO** — ProShares Ultra S&P 500 (2x daily-reset leveraged)
+   For each, run `alpaca bars <SYM> --days 10`, take the close on the
+   first and last trading day of the review window, and compute
+   `(end / start - 1) * 100`. Report all three alongside the
+   portfolio return. Note: SSO is 2x *daily* — over a week it
+   tracks roughly 2× SPY but with path-dependent drift; mention
+   the discrepancy when it's notable.
 
 9. Build the review entry per `journal/README.md` schema:
    ```json
@@ -89,7 +98,14 @@ DO NOT call `alpaca buy / sell / close / cancel`. Read-only.
      ],
      "patterns": ["..."],
      "suggested_adjustments": ["..."],
-     "benchmark": {"portfolio_pct": 1.2, "spy_pct": 0.9},
+     "benchmarks": {
+       "portfolio_pct": 1.2,
+       "spy_pct": 0.9,
+       "vt_pct": 0.7,
+       "sso_pct": 1.75,
+       "best_passive": "sso",
+       "alpha_vs_spy_pct": 0.3
+     },
      "summary": "..."
    }
    ```
@@ -103,6 +119,7 @@ DO NOT call `alpaca buy / sell / close / cancel`. Read-only.
     ```
 
 11. Reply with: graded decisions table, top patterns, suggested
-    adjustments, week PnL vs SPY, and confirmation the review was
-    appended and pushed.
+    adjustments, week PnL with all four numbers side by side
+    (portfolio / SPY / VT / SSO), the best passive alternative for
+    the week, and confirmation the review was appended and pushed.
 ```

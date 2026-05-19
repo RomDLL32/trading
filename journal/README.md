@@ -73,7 +73,15 @@ against subsequent price action and flags patterns to adjust.
     "Avoid new longs when RSI > 75 unless price is < 2% above 50-SMA.",
     "Hold trims until pct_from_52w_high > 0 AND RSI < 70."
   ],
-  "summary": "Week +1.2%, vs SPY +0.9%. Decisions mostly aligned with momentum; one bad rotation out of QQQ."
+  "benchmarks": {
+    "portfolio_pct": 1.2,
+    "spy_pct": 0.9,       // S&P 500
+    "vt_pct": 0.7,        // total world (developed + emerging)
+    "sso_pct": 1.75,      // 2x daily-reset S&P 500 (path-dependent)
+    "best_passive": "sso",
+    "alpha_vs_spy_pct": 0.3
+  },
+  "summary": "Week +1.2%; SPY +0.9%, VT +0.7%, SSO +1.75%. Decisions mostly aligned with momentum; one bad rotation out of QQQ."
 }
 ```
 
