@@ -12,8 +12,10 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Sequence
 
 from alpaca.data.historical import StockHistoricalDataClient
@@ -35,6 +37,8 @@ log = logging.getLogger("alpaca_trader.cli")
 MAX_ORDER_PCT = 0.25      # no single order > 25% of equity
 MAX_GROSS_PCT = 0.95      # total long exposure cap
 DAILY_BAR_LIMIT = 200     # never return more bars than this in one call
+
+JOURNAL_PATH = Path(os.environ.get("ALPACA_JOURNAL", "journal/decisions.jsonl"))
 
 
 def _emit(payload: object) -> None:
@@ -139,6 +143,44 @@ def cmd_bars(settings: Settings, args: argparse.Namespace) -> int:
             for ts, row in sub.iterrows()
         ],
     })
+    return 0
+
+
+def cmd_journal_tail(_settings: Settings, args: argparse.Namespace) -> int:
+    """Print the last N journal entries. Read this at the start of every routine."""
+    path = Path(args.path or JOURNAL_PATH)
+    if not path.exists() or path.stat().st_size == 0:
+        _emit({"path": str(path), "entries": [], "note": "journal is empty (first run)"})
+        return 0
+    lines = path.read_text().strip().splitlines()
+    tail = lines[-args.n :]
+    entries = []
+    for ln in tail:
+        try:
+            entries.append(json.loads(ln))
+        except json.JSONDecodeError:
+            entries.append({"_raw": ln, "_error": "invalid_json"})
+    _emit({"path": str(path), "count": len(entries), "entries": entries})
+    return 0
+
+
+def cmd_journal_append(_settings: Settings, args: argparse.Namespace) -> int:
+    """Append one JSON entry to the journal. Validates that the input is JSON
+    and adds an ISO timestamp if missing.
+    """
+    try:
+        entry = json.loads(args.entry)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"--entry must be valid JSON: {exc}")
+    if not isinstance(entry, dict):
+        raise SystemExit("--entry must be a JSON object")
+    entry.setdefault("timestamp", datetime.now(tz=timezone.utc).isoformat(timespec="seconds"))
+
+    path = Path(args.path or JOURNAL_PATH)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a") as fh:
+        fh.write(json.dumps(entry, default=str) + "\n")
+    _emit({"appended_to": str(path), "timestamp": entry["timestamp"]})
     return 0
 
 
@@ -295,6 +337,16 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     p_research.add_argument("symbols", help="Comma-separated tickers, e.g. SPY,QQQ,AAPL")
     p_research.set_defaults(fn=cmd_research)
+
+    p_jt = sub.add_parser("journal-tail", help="Print last N decision-journal entries.")
+    p_jt.add_argument("-n", type=int, default=7, help="Number of trailing entries (default 7).")
+    p_jt.add_argument("--path", default=None)
+    p_jt.set_defaults(fn=cmd_journal_tail)
+
+    p_ja = sub.add_parser("journal-append", help="Append a JSON entry to the decision journal.")
+    p_ja.add_argument("--entry", required=True, help="JSON object as a string.")
+    p_ja.add_argument("--path", default=None)
+    p_ja.set_defaults(fn=cmd_journal_append)
     sub.add_parser("report", help="Human-readable portfolio report").set_defaults(fn=cmd_report)
 
     p_orders = sub.add_parser("orders", help="Recent orders")
