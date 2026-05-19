@@ -39,3 +39,43 @@ what prior sessions decided and why.
 - Append-only. Never edit historical entries.
 - One line per session, no pretty-printing.
 - Commit the journal as part of each routine run.
+
+---
+
+## Weekly Review log — `reviews.jsonl`
+
+Written by the weekly-review routine. Grades the past week of decisions
+against subsequent price action and flags patterns to adjust.
+
+```json
+{
+  "timestamp": "2026-05-25T20:00:00Z",
+  "review_window": {"from": "2026-05-19", "to": "2026-05-23"},
+  "sessions_reviewed": 5,
+  "graded_decisions": [
+    {
+      "from_session": "2026-05-19",
+      "symbol": "NVDA",
+      "action": "buy",
+      "entry_price": 222.35,
+      "current_price": 231.40,
+      "pnl_pct_since": 4.07,
+      "grade": "good",                  // good | mixed | bad | too_early
+      "thesis_held": true,
+      "comment": "Trend thesis intact, RSI normalized to 58. Hold."
+    }
+  ],
+  "patterns": [
+    "Consistently bought into RSI > 80 — got lucky once, burned twice. Tighten RSI ceiling.",
+    "Trims around 52w-high too early — see AAPL and MSFT both ran another 3% after trim."
+  ],
+  "suggested_adjustments": [
+    "Avoid new longs when RSI > 75 unless price is < 2% above 50-SMA.",
+    "Hold trims until pct_from_52w_high > 0 AND RSI < 70."
+  ],
+  "summary": "Week +1.2%, vs SPY +0.9%. Decisions mostly aligned with momentum; one bad rotation out of QQQ."
+}
+```
+
+Read with `alpaca journal-tail --path journal/reviews.jsonl -n 4`.
+Append with `alpaca journal-append --path journal/reviews.jsonl --entry '<json>'`.
