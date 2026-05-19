@@ -25,6 +25,7 @@ from alpaca.trading.requests import GetOrdersRequest, MarketOrderRequest
 
 from .config import PAPER_ENDPOINT, Settings
 from .reporter import PortfolioReporter, format_report
+from .research import analyse
 from .strategy import SmaCrossoverStrategy
 from .data import BarFetcher
 
@@ -138,6 +139,16 @@ def cmd_bars(settings: Settings, args: argparse.Namespace) -> int:
             for ts, row in sub.iterrows()
         ],
     })
+    return 0
+
+
+def cmd_research(settings: Settings, args: argparse.Namespace) -> int:
+    """Per-symbol research bundle: returns, SMAs, RSI, volatility, 52w range, volume."""
+    symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
+    fetcher = BarFetcher(settings.api_key, settings.api_secret)
+    bars = fetcher.daily_bars(symbols, lookback_days=260)  # ~52 weeks of trading days
+    reports = [analyse(sym, bars.get(sym)).to_dict() for sym in symbols]
+    _emit({"reports": reports})
     return 0
 
 
@@ -277,6 +288,13 @@ def _build_parser() -> argparse.ArgumentParser:
     sub.add_parser("account", help="Account state + market clock").set_defaults(fn=cmd_account)
     sub.add_parser("positions", help="Current open positions").set_defaults(fn=cmd_positions)
     sub.add_parser("signals", help="Advisory SMA-crossover view").set_defaults(fn=cmd_signals)
+
+    p_research = sub.add_parser(
+        "research",
+        help="Per-symbol research bundle (returns, SMAs, RSI, vol, 52w, volume).",
+    )
+    p_research.add_argument("symbols", help="Comma-separated tickers, e.g. SPY,QQQ,AAPL")
+    p_research.set_defaults(fn=cmd_research)
     sub.add_parser("report", help="Human-readable portfolio report").set_defaults(fn=cmd_report)
 
     p_orders = sub.add_parser("orders", help="Recent orders")
