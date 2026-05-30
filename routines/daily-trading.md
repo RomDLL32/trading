@@ -67,11 +67,20 @@ Research tools (use these for fundamentals, news, sentiment):
      at least 2 different reputable outlets (Reuters, Bloomberg, WSJ,
      FT, CNBC, company IR, official filings).
    - Check upcoming catalysts: earnings date, ex-div, FOMC, CPI/jobs,
-     product launches, regulatory deadlines.
+     product launches, regulatory deadlines, developer conferences.
+   - **Catalyst calendar gate (exits):** Before selling or trimming any
+     position, confirm there are no scheduled catalysts for that symbol
+     within the next 7 trading days. If a catalyst is coming, do NOT
+     exit on a routine trim — wait until after, or hold unless a hard
+     stop-loss level is hit.
    - WebFetch the source article when a headline is decision-relevant
      (don't trade on the headline alone — read the substance).
    - Note dissent: search for the bear case explicitly ("<TICKER>
      short thesis" or "risks") so you don't anchor on momentum.
+   - **ATH/52w-high entry check:** If the candidate is within 1% of its
+     52-week high, require 2+ independent outlets confirming a fresh
+     catalyst before adding or initiating. Prefer entering on a 1–2%
+     intraday pullback rather than buying the high-of-day.
 
 5. **Build the reasoning.** For each decision, your reply must include
    2–5 sentences citing:
@@ -90,7 +99,17 @@ Research tools (use these for fundamentals, news, sentiment):
      down hard
 
    Don't churn: avoid reversing a position less than 3 days old
-   without a research-driven catalyst.
+   without a research-driven catalyst. Additionally, **never sell a
+   symbol at a price more than 0.5% below your most recent buy in that
+   symbol within the past 3 sessions** — that is buying high and selling
+   lower. If the thesis has changed, note the invalidation explicitly
+   in the journal before executing.
+
+   **Sector concentration:** Before placing any buy, check
+   `alpaca positions`. If US large-cap tech (AAPL, MSFT, NVDA, GOOGL,
+   AMZN, META, AVGO, TSLA, QQQ, XLK, SPY) already exceeds 65% of
+   portfolio market value, do not add further tech exposure — rotate
+   into an uncorrelated sector ETF or hold cash instead.
 
 7. **Wrap up.**
    - `alpaca report` for the final state.
@@ -134,6 +153,13 @@ Research tools (use these for fundamentals, news, sentiment):
 - Read-only on code. Do not modify source files or change strategy code.
 - No new positions you can't explain with a research citation.
 - No FOMO buying into +5% gap-ups without a substantive catalyst.
+- No exits within 7 days of a scheduled catalyst for that symbol
+  unless a hard stop-loss level is explicitly hit (catalyst calendar gate).
+- No sells below the most recent buy price on that symbol within
+  3 sessions unless thesis is formally invalidated in the journal.
+- No new long if US large-cap tech already exceeds 65% of portfolio.
+- No entry within 1% of 52-week high unless 2+ outlets confirm a
+  fresh catalyst; wait for a 1–2% intraday pullback.
 - If WebSearch / WebFetch are unavailable for some reason, do NOT
   fall back to `alpaca research` and trade anyway — append a journal
   entry noting "research tools unavailable, no trades" and exit.
